@@ -1,86 +1,88 @@
-# ============================================
-# Proyecto: HYDRASIL
-# Archivo: main.py
-# Función: Control principal del sistema
-# Autor: Arturo
-# ============================================
+# ==============================================================================
+# Project: HYDRASIL
+# File: main.py
+# Function: Main system control loop and CLI interface
+# Author: Arturo
+# ==============================================================================
 
-from db_connection import conectar,leer_datos,ejecutar_query
+from db_connection import connect_to_db, fetch_data, execute_query
 
-def mostrar_pacientes(conexion):
-    """
-    Muestra todos los pacientes registrados en la base de datos
-    """
-    
-    query = "SELECT * FROM pacientes;"
-    pacientes = leer_datos(conexion, query)
-    
-    if not pacientes:
-        print("No hay pacientes registrados en la base de datos.")
-        
+
+def display_patients(connection):
+    """Fetches and displays all registered patients from the database."""
+    query = "SELECT * FROM patients;"
+    patients = fetch_data(connection, query)
+
+    if not patients:
+        print("\nNo registered patients found in the database.")
     else:
-        print("\n== LISTA DE PACIENTES REGISTRADOS ===")
-        for p in pacientes:
-            print(f"ID: L{p['id_paciente']} | Nombre: {p['nombre_pacietes']} | Edad: {p['edad']} | Sexo: {p['sexo']} | Identificacion: {p['identificacion']}")
-            
-#============================================
+        print("\n================ REGISTERED PATIENTS LIST ================")
+        for patient in patients:
+            print(
+                f"ID: {patient['patient_id']} | "
+                f"Name: {patient['first_names']} {patient['last_names']} | "
+                f"Age: {patient['age']} | "
+                f"Gender: {patient['gender']} | "
+                f"Identification: {patient['identification']}"
+            )
 
-def registrar(conexion):
-    """
-    Registrar un nuevo paciente en la base de datos Hydrasil.
-    """
-    
-    print("\n== REGISTRO DE NUEVO PACIENTE ==")
-    nombre = input(" Nombre del paciente: ")
-    apellido = input("Apellido del paciente: ")
-    edad = input("Edad: ")
-    sexo = input("Sexo del paciente (M/F):")
-    identidicacion = input("numero de identificacion del pacinete: ")
-    antecedentes_familiares = input("Introduzca si el paciente tiene antecedentes familiares: ")
-    
+
+# ==============================================================================
+def register_patient(connection):
+    """Prompts user for input and registers a new patient in the database."""
+    print("\n== REGISTER NEW PATIENT ==")
+    first_name = input(" First Name: ")
+    last_name = input(" Last Name: ")
+    age = input(" Age: ")
+    gender = input(" Gender (M/F): ").upper().strip()
+    identification = input(" Identification Number: ")
+    family_history = input(" Family Medical History / Antecedents: ")
+
     query = """
-        INSERT INTO pacientes (nombres_pacientes, apellidos_pacientes, edad, sexo, identificacion, antecedentes_familiares)
-        VALUES (%s, $s, $s);
-
-    """    
-    valores = (nombre,apellido,edad,sexo,identidicacion,antecedentes_familiares)
-    ejecutar_query(conexion, query, valores)
-    
-    
-def main ():
+        INSERT INTO patients (first_names, last_names, age, gender, identification, family_history)
+        VALUES (%s, %s, %s, %s, %s, %s);
     """
-    Punto de entrada principal del sistema de Hydrasil.
-    """
-    print("=====================================")
-    print("\n             HYDRASIL            : ")
-    print("=====================================")
-    
-    conexion = conectar()
-    
-    if conexion:
-        while True:
-            print("\n--- MENÚ PRINCIPAL ---")
-            print("1. Mostrar pacientes")
-            print("2. Registrar nuevo paciente")
-            print("3. Salir")  
+    values = (first_name, last_name, age, gender, identification, family_history)
+    execute_query(connection, query, values)
 
-            opcion = input("Seleccione una opcion: ")
-            if conexion == "1":
-                mostrar_pacientes(conexion)
-            elif opcion == "2":
-                registrar(conexion)
-        
-            elif opcion == "3":
-        
-                print("\n Cerrando conexion --- Cerrando sistema")
-        
-                conexion.close()
-                print("conexion cerrada correctamente: ")
-                break
-            else:
-                print("Opcion no valida. Intente de nuevo.")
+
+# ==============================================================================
+def main():
+    """Main entry point for the Hydrasil system command-line interface."""
+    print("==================================================")
+    print("                    HYDRASIL                      ")
+    print("==================================================")
+
+    connection = connect_to_db()
+
+    if connection:
+        try:
+            while True:
+                print("\n--- MAIN MENU ---")
+                print("1. Display patients")
+                print("2. Register new patient")
+                print("3. Exit")
+
+                option = input("Select an option: ").strip()
+
+                if option == "1":
+                    display_patients(connection)
+                elif option == "2":
+                    register_patient(connection)
+                elif option == "3":
+                    print("\nClosing connection... Shutting down system.")
+                    connection.close()
+                    print("Database connection successfully closed.")
+                    break
+                else:
+                    print("Invalid option. Please try again.")
+        except KeyboardInterrupt:
+            print("\n\nSystem interrupted. Closing database connection...")
+            connection.close()
+            print("Database connection successfully closed. Goodbye.")
     else:
-        print("No se pudo conectar la base de datos.")
-        
+        print("Critical Error: Could not establish a database connection.")
+
+
 if __name__ == "__main__":
     main()
