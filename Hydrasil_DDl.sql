@@ -1,161 +1,188 @@
 -- ===================================================================
---   HYDRASILL - Esquema base de la base de datos 
---   Autor: Carlos Arturo Alfonso Garavito
+--   HYDRASIL - Database Base Schema 
+--   Author: Carlos Arturo Alfonso Garavito
 -- ===================================================================
 
 
 -- ===================================================================
--- DataSet inteactions
+-- Database Interaction
 -- ===================================================================
 CREATE DATABASE hydrasil;
 USE hydrasil;
-ALTER  DATABASE hydrasil
+
+ALTER DATABASE hydrasil
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci;
+
 -- ====================================================================
--- Table pacientes interactions 
+-- Table: patients
 -- ====================================================================
-CREATE TABLE pacientes (
-id_paciente INT auto_increment PRIMARY KEY,
-nombres_pacientes VARCHAR (800),
-apellidos_pacientes VARCHAR (800),
-edad INT,
-sexo ENUM('M' , 'F')
+CREATE TABLE patients (
+    patient_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_names VARCHAR(800),
+    last_names VARCHAR(800),
+    age INT,
+    gender ENUM('M', 'F')
 );
-ALTER TABLE pacientes 
+
+ALTER TABLE patients 
 CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-ADD identificacion VARCHAR (50) NOT NULL UNIQUE,
-ADD fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-;
-ALTER TABLE pacientes
-ADD antecedentes_familiares TEXT;
+ADD identification VARCHAR(50) NOT NULL UNIQUE,
+ADD registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE patients
+ADD family_history TEXT;
+
 -- ====================================================================
--- Tablaa: resultados 
--- (Mediciones o diagnositicos base)
+-- Table: results 
+-- (Base measurements or diagnostics)
 -- ====================================================================
-CREATE TABLE IF NOT EXISTS resultados (
-id_resultado INT AUTO_INCREMENT PRIMARY KEY,
-id_paciente INT ,
-tipo_examen VARCHAR (100),
-fecha_examen DATE,
-observaciones TEXT,
-FOREIGN KEY (id_paciente) REFERENCES pacientes (id_paciente)
-ON DELETE CASCADE ON UPDATE CASCADE 
+CREATE TABLE IF NOT EXISTS results (
+    result_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    test_type VARCHAR(100),
+    test_date DATE,
+    observations TEXT,
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
+    ON DELETE CASCADE ON UPDATE CASCADE 
 );
-ALTER TABLE resultados 
-CONVERT TO CHARACTER SET utf8mb4 COLLATE  utf8mb4_general_ci;
-ALTER TABLE resultados
-DROP valor,
-DROP unidad;
-ALTER TABLE resultados
-ADD estado_examen ENUM ('pendiente','completado','analizado') DEFAULT 'pendiente';
--- ====================================================================
--- Examenes
--- ====================================================================
-CREATE TABLE perfil_lipidico (
-id_lipidico INT AUTO_INCREMENT PRIMARY KEY,
-id_resultado INT NOT NULL,
-colesterol_total DECIMAL(6,2),
-hdl DECIMAL(6,2),
-ldl DECIMAL(6,2),
-trigliceridos DECIMAL(6,2),
-FOREIGN KEY (id_resultado) REFERENCES resultados(id_resultado)
-ON DELETE CASCADE ON UPDATE CASCADE
-);
-ALTER TABLE perfil_lipidico
+
+ALTER TABLE results 
 CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+-- Historical alterations matching original schema changes
+ALTER TABLE results
+DROP COLUMN value,
+DROP COLUMN unit;
+
+ALTER TABLE results
+ADD test_status ENUM('pending', 'completed', 'analyzed') DEFAULT 'pending';
+
 -- ====================================================================
-CREATE TABLE presion_arterial (
-id_presion INT AUTO_INCREMENT PRIMARY KEY,
-id_resultado INT NOT NULL,
-sistolica INT,
-diastolica INT,
-pulso INT,
-FOREIGN KEY (id_resultado) REFERENCES resultados(id_resultado)
-ON DELETE CASCADE ON UPDATE CASCADE
+-- Table: lipid_profile
+-- ====================================================================
+CREATE TABLE lipid_profile (
+    lipid_id INT AUTO_INCREMENT PRIMARY KEY,
+    result_id INT NOT NULL,
+    total_cholesterol DECIMAL(6,2),
+    hdl DECIMAL(6,2),
+    ldl DECIMAL(6,2),
+    triglycerides DECIMAL(6,2),
+    FOREIGN KEY (result_id) REFERENCES results(result_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
-ALTER TABLE presion_arterial
+
+ALTER TABLE lipid_profile
 CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
 -- ====================================================================
-CREATE TABLE marcadores_tumorales (
-id_marcador INT AUTO_INCREMENT PRIMARY KEY,
-id_resultado INT NOT NULL,
-psa DECIMAL(6,2),
-ca125 DECIMAL(6,2),
-cea DECIMAL(6,2),
-afp DECIMAL(6,2),
-FOREIGN KEY (id_resultado) REFERENCES resultados(id_resultado)
-ON DELETE CASCADE ON UPDATE CASCADE
+-- Table: blood_pressure
+-- ====================================================================
+CREATE TABLE blood_pressure (
+    pressure_id INT AUTO_INCREMENT PRIMARY KEY,
+    result_id INT NOT NULL,
+    systolic INT,
+    diastolic INT,
+    pulse INT,
+    FOREIGN KEY (result_id) REFERENCES results(result_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
-ALTER TABLE marcadores_tumorales
+
+ALTER TABLE blood_pressure
 CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
 -- ====================================================================
--- Tabla: Perfil renal
+-- Table: tumor_markers
 -- ====================================================================
-CREATE TABLE perfil_renal (
-id_renal INT AUTO_INCREMENT PRIMARY KEY,
-id_paciente INT,
-creatinina DECIMAL(5,2),
-urea DECIMAL(5,2),
-acido_urico DECIMAL(5,2),
-tasa_filtracion_glomerular DECIMAL(5,2),
-proteinas_en_orina DECIMAL(5,2),
-observaciones VARCHAR(255),
-fecha_examen DATE,
-FOREIGN KEY (id_paciente) REFERENCES pacientes(id_paciente)
-ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE tumor_markers (
+    marker_id INT AUTO_INCREMENT PRIMARY KEY,
+    result_id INT NOT NULL,
+    psa DECIMAL(6,2),
+    ca125 DECIMAL(6,2),
+    cea DECIMAL(6,2),
+    afp DECIMAL(6,2),
+    FOREIGN KEY (result_id) REFERENCES results(result_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
-ALTER TABLE perfil_renal
+
+ALTER TABLE tumor_markers
 CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
 -- ====================================================================
--- Tabla: analisis_genetico
+-- Table: renal_profile
 -- ====================================================================
-CREATE TABLE analisis_genetico (
- id_genetico INT AUTO_INCREMENT PRIMARY KEY,
-id_paciente INT,
-gen_estudiado VARCHAR(50),
-mutacion_detectada VARCHAR(100),
-tipo_mutacion VARCHAR(50),
-riesgo_asociado VARCHAR(100),
-probabilidad_cancer DECIMAL(5,2),
-observaciones VARCHAR(255),
-fecha_examen DATE,
-FOREIGN KEY (id_paciente) REFERENCES pacientes(id_paciente)
-ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE renal_profile (
+    renal_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    creatinine DECIMAL(5,2),
+    urea DECIMAL(5,2),
+    uric_acid DECIMAL(5,2),
+    glomerular_filtration_rate DECIMAL(5,2),
+    urine_protein DECIMAL(5,2),
+    observations VARCHAR(255),
+    test_date DATE,
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
--- ====================================================================
--- Tabla: probabilidades
--- (Datoos calculados en python, asociados a resultados)
--- ====================================================================
-CREATE TABLE IF NOT EXISTS probabilidades (
-id_probabilidad INT AUTO_INCREMENT PRIMARY KEY,
-id_resultado INT,
-modelo_usado VARCHAR (100),
-probabilidad float  CHECK (probabilidad BETWEEN  0 AND 1),
-clasificacion VARCHAR (50),
-fecha_calculo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (id_resultado) REFERENCES resultados (id_resultado)
-ON DELETE CASCADE ON UPDATE CASCADE 
-);
-ALTER TABLE probabilidades 
+
+ALTER TABLE renal_profile
 CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-ALTER TABLE probabilidades 
-ADD algoritmo_version VARCHAR(20),
-ADD metrica_f1 FLOAT,
-ADD  metrica_accuracy FLOAT;
+
 -- ====================================================================
--- Tabla :Usuarios (control del sistema )
+-- Table: genetic_analysis
 -- ====================================================================
-CREATE TABLE IF NOT EXISTS usuarios (
-id_usuarios INT AUTO_INCREMENT PRIMARY KEY,
-nombre_usuario VARCHAR (50) UNIQUE,
-CLAVE VARCHAR (250),
-rol ENUM ('admin','medico','analista') DEFAULT 'analista',
-fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE genetic_analysis (
+    genetic_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    studied_gene VARCHAR(50),
+    detected_mutation VARCHAR(100),
+    mutation_type VARCHAR(50),
+    associated_risk VARCHAR(100),
+    cancer_probability DECIMAL(5,2),
+    observations VARCHAR(255),
+    test_date DATE,
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
-ALTER TABLE usuarios
-ADD email VARCHAR (100),
-ADD ultimo_acceso TIMESTAMP NULL;
+
+-- ====================================================================
+-- Table: probabilities
+-- (Data calculated via Python, associated with specific exam results)
+-- ====================================================================
+CREATE TABLE IF NOT EXISTS probabilities (
+    probability_id INT AUTO_INCREMENT PRIMARY KEY,
+    result_id INT,
+    model_used VARCHAR(100),
+    probability FLOAT CHECK (probability BETWEEN 0 AND 1),
+    classification VARCHAR(50),
+    calculation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (result_id) REFERENCES results(result_id)
+    ON DELETE CASCADE ON UPDATE CASCADE 
+);
+
+ALTER TABLE probabilities 
+CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+ALTER TABLE probabilities 
+ADD algorithm_version VARCHAR(20),
+ADD f1_metric FLOAT,
+ADD accuracy_metric FLOAT;
+
+-- ====================================================================
+-- Table: users (System Access Control)
+-- ====================================================================
+CREATE TABLE IF NOT EXISTS users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(250),
+    role ENUM('admin', 'doctor', 'analyst') DEFAULT 'analyst',
+    creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users
+ADD email VARCHAR(100),
+ADD last_access TIMESTAMP NULL;
+
 -- ===================================================================
--- Reset AUTOincrement
+-- Reset AUTO_INCREMENT (Placeholder for future optimization)
 -- ===================================================================
