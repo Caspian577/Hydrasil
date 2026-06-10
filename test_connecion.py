@@ -1,30 +1,45 @@
-from db_connection import conectar
+# ==============================================================================
+# Project: HYDRASIL
+# File: test_connection.py
+# Function: Database connectivity and schema visibility test
+# Author: Arturo
+# ==============================================================================
 
-try:
-    conexion = conectar ()
-    
-    
-    if conexion and conexion.is_connected():
-        print("La conexion con la base de datos fue exitosa:")
-        
-        cursor = conexion.cursor()
-        cursor.execute("SHOW TABLES")
-        tablas = cursor.fetchall()
-        
-        if tablas:
-            print("Tablas existentes:")
-            for tabla in tablas:
-                print ("-", tabla[0])
-                
+from db_connection import connect_to_db
+import mysql.connector
+
+
+def test_database_connection():
+    """Tests the MySQL connection and lists all existing tables in the schema."""
+    try:
+        # Use the updated connection function name
+        connection = connect_to_db()
+
+        if connection and connection.is_connected():
+            print("Database connection verification: SUCCESSFUL")
+
+            cursor = connection.cursor()
+            cursor.execute("SHOW TABLES;")
+            tables = cursor.fetchall()
+
+            if tables:
+                print("\nExisting tables in Hydrasil database:")
+                for table in tables:
+                    print(f" - {table[0]}")
+            else:
+                print("\nNo tables found in this database instance yet.")
+
+            cursor.close()
+            connection.close()
+            print("\nDatabase connection successfully closed.")
         else:
-            print("No hay tablas en esta base de datos todavia.")
-            
-            
-        cursor.close()
-        conexion.close()
-        print("conexion cerrada correctamente.")
-    else:
-        print("No se pudo conectar.Revise las credenciales o MySQL.")
-        
-except Exception as e:
-    print("Error en la prueba de conexion:", e)
+            print(
+                "Connection failed. Please check your .env credentials or MySQL service status."
+            )
+
+    except Exception as e:
+        print(f"Error during database connection test: {e}")
+
+
+if __name__ == "__main__":
+    test_database_connection()
