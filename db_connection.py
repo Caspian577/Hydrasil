@@ -1,60 +1,61 @@
+import os
 from dotenv import load_dotenv
-import os 
 import mysql.connector
 from mysql.connector import Error
 
+# Load environment variables from .env file
 load_dotenv()
 
-def conectar ():
-    """
-    Retorna una conexion activa a la base de datos de MySQL usando credenciales del archivo
-    """
+
+def connect_to_db():
+    """Returns an active MySQL database connection using credentials from the .env file."""
     try:
-        conexion = mysql.connector.connect(
-        
+        connection = mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             port=os.getenv("DB_PORT"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASS"),
-            database=os.getenv("DB_NAME")        
+            database=os.getenv("DB_NAME"),
         )
-        if conexion.is_connected():
-            print("== CONEXION A HYDRASILL EXITOSA ==")
-            return conexion
+        if connection.is_connected():
+            print("== HYDRASIL CONNECTION SUCCESSFUL ==")
+            return connection
     except Error as e:
-        print ("== ERRPR DE CONEXION ==;",e)
-        return None 
-    
-#==============================================================================
-def ejecutar_query (conexion, query, valores=None):
-    """
-    Ejecutar consultas INSERT, UPDATE O DELETE    
-    """
+        print("== CONNECTION ERROR ==:", e)
+        return None
+
+
+# ==============================================================================
+def execute_query(connection, query, values=None):
+    """Executes INSERT, UPDATE, or DELETE queries."""
+    cursor = None
     try:
-        cursor = conexion.cursor()
-        if valores:
-            cursor.execute(query, valores)
-            
+        cursor = connection.cursor()
+        if values:
+            cursor.execute(query, values)
         else:
             cursor.execute(query)
-        conexion.commit()
-        print("Quey ejecutada correctamente")
-    except Error as e :
-        print("Error al ejecutar Query {e}")
+        connection.commit()
+        print("Query executed successfully")
+    except Error as e:
+        print(f"Error executing query: {e}")
     finally:
-        cursor.close()
-#==============================================================================
-def leer_datos(conexion, query):
-    """
-    Ejecuta una consulta SELECT y devuelve los resultados como lista de diccionarios.
-    """
+        if cursor:
+            cursor.close()
+
+
+# ==============================================================================
+def fetch_data(connection, query):
+    """Executes a SELECT query and returns the results as a list of dictionaries."""
+    cursor = None
     try:
-        cursor = conexion.cursor(dictionary=True)
+        cursor = connection.cursor(dictionary=True)
         cursor.execute(query)
-        resultados = cursor.fetchall()
-        return resultados
-    except  Error as e:
-        print("Erro al leer los datos {e}")
-        return[]
+        results = cursor.fetchall()
+        return results
+    except Error as e:
+        print(f"Error reading data: {e}")
+        return []
     finally:
-        cursor.close()
+        if cursor:
+            cursor.close()
